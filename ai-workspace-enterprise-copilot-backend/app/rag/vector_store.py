@@ -1,11 +1,11 @@
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
-
-import chromadb
-from chromadb.api.models.Collection import Collection
+from typing import TYPE_CHECKING, Any
 
 from app.config import settings
+
+if TYPE_CHECKING:
+    from chromadb.api.models.Collection import Collection
 
 
 @lru_cache(maxsize=1)
@@ -22,13 +22,17 @@ def get_chroma_client():
         exist_ok=True,
     )
 
+    # ChromaDB brings in ONNX Runtime.  Deferring this import avoids paying its
+    # memory cost for API requests that do not use document search.
+    import chromadb
+
     return chromadb.PersistentClient(
         path=str(persist_directory)
     )
 
 
 @lru_cache(maxsize=1)
-def get_document_collection() -> Collection:
+def get_document_collection() -> "Collection":
     """
     Get or create the enterprise document collection.
     """

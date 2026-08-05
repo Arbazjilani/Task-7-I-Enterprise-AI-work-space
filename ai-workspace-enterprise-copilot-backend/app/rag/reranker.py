@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from functools import lru_cache
-
-from sentence_transformers import CrossEncoder
+from typing import TYPE_CHECKING
 
 from app.config import settings
+
+if TYPE_CHECKING:
+    from sentence_transformers import CrossEncoder
 
 
 @dataclass
@@ -13,12 +15,16 @@ class RerankedItem:
 
 
 @lru_cache(maxsize=1)
-def get_reranker_model() -> CrossEncoder:
+def get_reranker_model() -> "CrossEncoder":
     """
     Load the cross-encoder model once.
 
     The first request may download the model.
     """
+    # CrossEncoder imports PyTorch; load it only for a search that requests
+    # reranking rather than when the web service starts.
+    from sentence_transformers import CrossEncoder
+
     return CrossEncoder(
         settings.reranker_model_name
     )

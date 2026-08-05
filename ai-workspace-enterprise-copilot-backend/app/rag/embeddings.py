@@ -1,18 +1,24 @@
 from functools import lru_cache
-
-from sentence_transformers import SentenceTransformer
+from typing import TYPE_CHECKING
 
 from app.config import settings
 
+if TYPE_CHECKING:
+    from sentence_transformers import SentenceTransformer
+
 
 @lru_cache(maxsize=1)
-def get_embedding_model() -> SentenceTransformer:
+def get_embedding_model() -> "SentenceTransformer":
     """
     Load the embedding model once and reuse it.
 
     During the first execution, the model may be downloaded
     from Hugging Face.
     """
+    # Importing sentence-transformers also imports PyTorch.  Keep that work out
+    # of application startup so deployments that do not use RAG stay lightweight.
+    from sentence_transformers import SentenceTransformer
+
     return SentenceTransformer(
         settings.embedding_model_name
     )
