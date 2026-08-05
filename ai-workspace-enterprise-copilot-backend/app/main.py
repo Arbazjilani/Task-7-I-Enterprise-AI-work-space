@@ -7,7 +7,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.auth import router as auth_router
 from app.api.users import router as users_router
 from app.config import settings
-from app.database import SessionLocal
+from app.database import Base, SessionLocal, engine
+import app.models  # noqa: F401
 from app.services.user_service import seed_default_roles
 from app.api.chat import router as chat_router
 from app.api.documents import router as documents_router
@@ -21,6 +22,10 @@ from app.api.analytics import router as analytics_router
 async def lifespan(
     app: FastAPI,
 ) -> AsyncIterator[None]:
+    # A fresh deployment starts with an empty database.  Register every model
+    # and create missing tables before seeding the default roles.
+    Base.metadata.create_all(bind=engine)
+
     # Create the four default roles when the application starts.
     with SessionLocal() as db:
         seed_default_roles(db)

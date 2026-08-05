@@ -56,7 +56,9 @@ class Conversation(Base):
         nullable=False,
     )
 
-    user: Mapped["User"] = relationship()
+    user: Mapped["User"] = relationship(
+        back_populates="conversations",
+    )
 
     messages: Mapped[list["Message"]] = relationship(
         back_populates="conversation",
